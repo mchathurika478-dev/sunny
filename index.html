@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SunnyHub — Universal Roblox Injector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFB300;
+            --orange: #FF8C00;
+            --gold-dim: rgba(255, 179, 0, 0.12);
+            --gold-glow: rgba(255, 179, 0, 0.25);
+            --bg: #0a0a0f;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-gold: rgba(255, 179, 0, 0.2);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --text-mid: rgba(255, 255, 255, 0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Background effects ── */
+        .bg-rays {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .bg-rays::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(ellipse at center, rgba(255, 179, 0, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .bg-rays::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(255, 140, 0, 0.04) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 80px 80px;
+            mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 70%);
+        }
+
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-particle 8s infinite;
+        }
+        @keyframes float-particle {
+            0% { opacity: 0; transform: translateY(100vh) scale(0); }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.1; }
+            100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+        }
+
+        /* ── Layout ── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        section { position: relative; z-index: 1; }
+
+        /* ── Nav ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .logo span { color: var(--gold); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s;
+            letter-spacing: 0.2px;
+        }
+        .nav-links a:hover { color: var(--text); }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-select {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-dim);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            transition: border-color 0.2s;
+        }
+        .lang-select:hover { border-color: rgba(255,255,255,0.15); }
+        .lang-select svg { width: 14px; height: 14px; opacity: 0.5; }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-mid);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(255, 179, 0, 0.2);
+        }
+        .btn-gold:hover {
+            box-shadow: 0 0 30px rgba(255, 179, 0, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* ── Hero ── */
+        .hero {
+            padding: 180px 0 120px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gold);
+            margin-bottom: 32px;
+            letter-spacing: 0.5px;
+        }
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--gold);
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.05;
+            margin-bottom: 16px;
+        }
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--orange) 50%, #fff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 20px;
+            color: var(--text-mid);
+            font-weight: 400;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .hero-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            max-width: 440px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .hero-actions .btn { padding: 12px 32px; font-size: 14px; }
+
+        /* ── Stats ── */
+        .stats {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .stat {
+            background: var(--bg);
+            padding: 40px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ── Features ── */
+        .features {
+            padding: 100px 0;
+        }
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: -1px;
+            margin-bottom: 56px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 28px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-gold);
+            transform: translateY(-2px);
+        }
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* ── Games ── */
+        .games {
+            padding: 80px 0 120px;
+        }
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+        .game-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .game-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-gold);
+            transform: translateY(-2px);
+        }
+        a.game-card { text-decoration: none; color: inherit; }
+        .game-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(255,179,0,0.15), rgba(255,140,0,0.08));
+            border-radius: 12px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .game-card h4 {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: -0.2px;
+        }
+        .game-card span {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+        .game-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            font-size: 10px;
+            color: #4ade80;
+            font-weight: 500;
+        }
+        .game-status::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #4ade80;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+        }
+        footer p {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        footer a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer a:hover { color: var(--gold); }
+
+        /* ── Cookie Banner ── */
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: rgba(10, 10, 15, 0.92);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            transition: transform 0.4s ease;
+        }
+        .cookie-banner.hidden { transform: translateY(100%); }
+        .cookie-banner p {
+            font-size: 12px;
+            color: var(--text-dim);
+            max-width: 600px;
+        }
+        .cookie-banner .btn { padding: 8px 20px; font-size: 12px; }
+        .cookie-btns { display: flex; gap: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-rays"></div>
+<div class="bg-grid"></div>
+<div class="particles" id="particles"></div>
+
+<!-- Nav -->
+<nav>
+    <div class="nav-inner">
+        <div class="logo">
+            <div class="logo-icon">&#9728;</div>
+            Sunny<span>Hub</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#games">Scripts</a></li>
+            <li><a href="http://discord.com/invite/sunnyhub_scr" target="_blank">Discord</a></li>
+            <li><a href="https://docs.github.com/en/site-policy/github-terms/github-terms-of-service">Terms</a></li>
+            <li><a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">Privacy</a></li>
+        </ul>
+        <div class="nav-right">
+            <button class="lang-select">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                English
+            </button>
+            <a href="http://discord.com/invite/sunnyhub_scr" class="btn btn-ghost">Login</a>
+            <a href="https://www.mediafire.com/file_premium/1zlfim483nxk8v8/SunnyExecutor.zip/file" class="btn btn-gold">Get Key</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-badge">Now available for all executors</div>
+        <h1><span class="gradient">Universal Roblox</span><br>Injector</h1>
+        <p class="hero-sub">One script. Every game. Instant injection.</p>
+        <p class="hero-desc">The fastest and most reliable universal executor for all Roblox experiences.</p>
+        <div class="hero-actions">
+            <a href="https://www.mediafire.com/file_premium/1zlfim483nxk8v8/SunnyExecutor.zip/file" class="btn btn-gold">&#9889; Get Key</a>
+            <a href="#games" class="btn btn-ghost">View Scripts &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat">
+                <div class="stat-value">15K+</div>
+                <div class="stat-label">Active Players</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">99.97%</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">200+</div>
+                <div class="stat-label">Games Supported</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+    <div class="container">
+        <div class="section-label">Why SunnyHub</div>
+        <h2 class="section-title">Built for performance</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#9889;</div>
+                <h3>Lightning Fast</h3>
+                <p>Instant injection with zero lag. Optimized engine delivers scripts in under 50ms across all games.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#127760;</div>
+                <h3>Universal Support</h3>
+                <p>Works with every Roblox game and mode. One hub, all experiences — no compatibility issues.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128274;</div>
+                <h3>Undetected &amp; Secure</h3>
+                <p>Premium anti-detection with encrypted payloads. Stay safe with real-time protection updates.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Games -->
+<section class="games">
+    <div class="container">
+        <div class="section-label">Quick Launch</div>
+        <h2 class="section-title">Popular games</h2>
+        <div class="games-grid">
+            <a class="game-card" href="#">
+                <div class="game-icon">&#127819;</div>
+                <h4>Blox Fruits</h4>
+                <span>Auto Farm &amp; more</span>
+                <div class="game-status">Working</div>
+            </a>
+            <a class="game-card" href="#">
+                <div class="game-icon">&#127968;</div>
+                <h4>Brookhaven</h4>
+                <span>Trolling &amp; Fly</span>
+                <div class="game-status">Working</div>
+            </a>
+            <a class="game-card" href="#">
+                <div class="game-icon">&#128299;</div>
+                <h4>Arsenal</h4>
+                <span>Aimbot &amp; ESP</span>
+                <div class="game-status">Working</div>
+            </a>
+            <a class="game-card" href="#">
+                <div class="game-icon">&#128062;</div>
+                <h4>Pet Sim 99</h4>
+                <span>Auto Hatch &amp; Farm</span>
+                <div class="game-status">Working</div>
+            </a>
+            <a class="game-card" href="#">
+                <div class="game-icon">&#9876;</div>
+                <h4>Murder Mystery 2</h4>
+                <span>ESP &amp; Silent Aim</span>
+                <div class="game-status">Working</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <p>&copy; 2026 SunnyHub. All rights reserved. &nbsp;&middot;&nbsp; <a href="#">Terms</a> &nbsp;&middot;&nbsp; <a href="#">Privacy</a> &nbsp;&middot;&nbsp; <a href="#" target="_blank">Discord</a></p>
+    </div>
+</footer>
+
+<!-- Cookie Banner -->
+<div class="cookie-banner" id="cookieBanner">
+    <p>This website uses cookies to enhance your experience. By continuing, you agree to our use of cookies.</p>
+    <div class="cookie-btns">
+        <button class="btn btn-gold" onclick="this.closest('.cookie-banner').classList.add('hidden')">Accept</button>
+        <button class="btn btn-ghost" onclick="this.closest('.cookie-banner').classList.add('hidden')">Reject</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var container = document.getElementById('particles');
+    for (var i = 0; i < 30; i++) {
+        var p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDelay = Math.random() * 8 + 's';
+        p.style.animationDuration = (6 + Math.random() * 6) + 's';
+        p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+        container.appendChild(p);
+    }
+})();
+</script>
+
+</body>
+</html>
